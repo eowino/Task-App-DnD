@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { DragDropContext } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import styled from 'styled-components';
 import Column from './Column';
 
@@ -13,11 +13,13 @@ class App extends Component {
   state = initData;
 
   renderColumns() {
-    return this.state.coloumnOrder.map(columnId => {
+    return this.state.columnOrder.map((columnId, index) => {
       const column = this.state.columns[columnId];
       const tasks = column.taskIds.map(taskId => this.state.tasks[taskId]);
 
-      return <Column key={columnId} column={column} tasks={tasks} />;
+      return (
+        <Column key={columnId} column={column} tasks={tasks} index={index} />
+      );
     });
   }
 
@@ -30,9 +32,24 @@ class App extends Component {
   }
 
   onDragEnd = result => {
-    const { destination, source, draggableId } = result;
+    const { destination, source, draggableId, type } = result;
 
     if (!destination || this.destinationNotChanged(destination, source)) return;
+
+    if (type === 'column') {
+      debugger;
+      const newColumnOrder = [...this.state.columnOrder];
+      newColumnOrder.splice(source.index, 1);
+      newColumnOrder.splice(destination.index, 0, draggableId);
+
+      const newState = {
+        ...this.state,
+        columnOrder: newColumnOrder,
+      };
+
+      this.setState(() => newState);
+      return;
+    }
 
     const start = this.state.columns[source.droppableId];
     const finish = this.state.columns[destination.droppableId];
@@ -63,19 +80,19 @@ class App extends Component {
     } else {
       // Moving from one list (column) to another
       const startTaskIds = [...start.taskIds];
-      
+
       // remove dragged task id from array
       startTaskIds.splice(source.index, 1);
       const newStart = {
         ...start,
-        taskIds: startTaskIds,
+        taskIds: startTaskIds
       };
 
       const finishTaskIds = [...finish.taskIds];
       finishTaskIds.splice(destination.index, 0, draggableId);
       const newFinish = {
         ...finish,
-        taskIds: finishTaskIds,
+        taskIds: finishTaskIds
       };
 
       const newState = {
@@ -83,7 +100,7 @@ class App extends Component {
         columns: {
           ...this.state.columns,
           [newStart.id]: newStart,
-          [newFinish.id]: newFinish,
+          [newFinish.id]: newFinish
         }
       };
 
@@ -93,11 +110,22 @@ class App extends Component {
 
   render() {
     return (
-      <Container>
-        <DragDropContext onDragEnd={this.onDragEnd}>
-          {this.renderColumns()}
-        </DragDropContext>
-      </Container>
+      <DragDropContext onDragEnd={this.onDragEnd}>
+        <Droppable
+          droppableId="all-columns"
+          direction="horizontal"
+          type="column"
+        >
+          {provided => (
+            <Container
+              {...provided.droppableProps}
+              innerRef={provided.innerRef}
+            >
+              {this.renderColumns()}
+            </Container>
+          )}
+        </Droppable>
+      </DragDropContext>
     );
   }
 }
