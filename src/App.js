@@ -23,7 +23,6 @@ class App extends Component {
   renderColumns() {
     return this.state.columnOrder.map((columnId, index) => {
       const column = this.state.columns[columnId];
-      const tasks = column.taskIds.map(taskId => this.state.tasks[taskId]);
 
       return (
         <InnerList key={columnId} column={column} taskMap={this.state.tasks} index={index} />
