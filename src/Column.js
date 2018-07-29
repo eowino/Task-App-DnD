@@ -21,10 +21,18 @@ const Title = styled.h3`
 const TaskList = styled.div`
   padding: 8px;
   transition: background 0.2s ease;
-  background: ${props => (props.isDraggingOver ? 'skyblue' : 'inherit')}
+  background: ${props => (props.isDraggingOver ? '#f2f2f2' : 'inherit')}
   flex-grow: 1;
   min-height: 100px;
 `;
+
+class InnerList extends React.PureComponent {
+  render() {
+    return this.props.tasks.map((task, i) => (
+      <Task key={task.id} task={task} index={i} />
+    ));
+  }
+}
 
 const Column = props => {
   return (
@@ -39,9 +47,7 @@ const Column = props => {
                 {...provided.droppableProps}
                 isDraggingOver={snapshot.isDraggingOver}
               >
-                {props.tasks.map((task, i) => (
-                  <Task key={task.id} task={task} index={i} />
-                ))}
+                <InnerList tasks={props.tasks} />
                 {provided.placeholder}
               </TaskList>
             )}
